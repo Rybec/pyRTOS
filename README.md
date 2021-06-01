@@ -25,7 +25,7 @@ A pyRTOS task is composed of a `Task` object combined with a function containing
 
 The main task loop is typically an infinite loop.  If the task needs to terminate, a return call should be used, and any teardown that is necessary should be done directly before returning.  Typically though, tasks never return.
 
-Preemption in pyRTOS is completely voluntary.  This means that all tasks _must_ periodically yield control back to the OS, or no other task will get CPU time, messages cannot be passed between tasks, and other administrative duties of the OS will never get done.  Yields have two functions in pyRTOS.  One is merely to pass control back to the OS.  This allows the OS to reevaluate task priorities and pass control to a higher priority ready task, and it allows the OS to take care of administration like message passing, lock handling, and such.  Yields should be fairly frequent but not so frequent that the program spends more time in the OS than in tasks.  For small tasks, once per main loop may be sufficient.  For larger tasks, yields should be placed between significant subsections.  If a task has a section of timing dependent code though, do not place yields in places where they could interrupt timing critial processes.  There is no guarantee a yield will return within the required time.
+Preemption in pyRTOS is completely voluntary.  This means that all tasks _must_ periodically yield control back to the OS, or no other task will get CPU time, messages cannot be passed between tasks, and other administrative duties of the OS will never get done.  Yields have two functions in pyRTOS.  One is merely to pass control back to the OS.  This allows the OS to reevaluate task priorities and pass control to a higher priority ready task, and it allows the OS to take care of administration like message passing, lock handling, and such.  Yields should be fairly frequent but not so frequent that the program spends more time in the OS than in tasks.  For small tasks, once per main loop may be sufficient.  For larger tasks, yields should be placed between significant subsections.  If a task has a section of timing dependent code though, do not place yields in places where they could interrupt timing critical processes.  There is no guarantee a yield will return within the required time.
 
 Yields are also used to make certain blocking API calls.  The most common will likely be delays.  Higher priority processes need to be especially well behaved, because even frequent yields will not give lower priority processes CPU time.  The default scheduler always gives the highest priority ready task the CPU time.  The only way lower priority tasks _ever_ get time, is if higher priority tasks block when they do not need the CPU time.  Typically this means blocking delays, which are accomplished in pyRTOS by yielding with a timeout generator.  When the timeout generator expires, the task will become ready again, but until then, lower priority tasks will be allowed to have CPU time.  Tasks can also block when waiting for messages or mutual exclusion locks.  In the future, more forgiving non-real-time schedulers may be available.
 
@@ -65,11 +65,11 @@ Note that `add_task()` will automatically initialize any task that has not previ
 
 <ul>
 
-This begins execution.  This function will only return when all tasks have terminated.  In most cases, tasks will not teriminate and this will never return.
+This begins execution.  This function will only return when all tasks have terminated.  In most cases, tasks will not terminate and this will never return.
 
 </ul><ul>
 
-`scheduler` - When this argument is left with its default value, the default scheduler is used.  Since no other schedulers currently exist, this is really only useful if you want to write your own scheduler.  Otherwise, just call `start()` without an argument.  This should be called only after you have added all tasks.  Additional tasks can be added while the scheduler is running (within running tasks), but this should generally be avoided.  (A better option, if you need to have a task that is only activated once some condition is met, is to create the task and then immediately suspend it.  This will not prevent the initialization code from running though.  If you need to prevent intialization code from running until the task is unsuspended, you can place the first yield in the task before initialization instead of after.)
+`scheduler` - When this argument is left with its default value, the default scheduler is used.  Since no other schedulers currently exist, this is really only useful if you want to write your own scheduler.  Otherwise, just call `start()` without an argument.  This should be called only after you have added all tasks.  Additional tasks can be added while the scheduler is running (within running tasks), but this should generally be avoided.  (A better option, if you need to have a task that is only activated once some condition is met, is to create the task and then immediately suspend it.  This will not prevent the initialization code from running though.  If you need to prevent initialization code from running until the task is unsuspended, you can place the first yield in the task before initialization instead of after.)
 
 </ul>
 
@@ -87,7 +87,7 @@ This is a simple mutex with priority inheritance.
 
 <ul>
 
-This will attempt aquire the lock on the mutex, with a blocking call.  Note that because this is a blocking call, the returned generator must be passed to a yield in a list, eg. `yield [mutex.lock()]`.
+This will attempt acquire the lock on the mutex, with a blocking call.  Note that because this is a blocking call, the returned generator must be passed to a yield in a list, eg. `yield [mutex.lock()]`.
 
 </ul>
 </ul>
@@ -124,7 +124,7 @@ Task functions must be wrapped in `Task` objects that hold some context data.  T
 
 </ul><ul>
 
-`func` - This is the actual task function.  This function must have the signature `func_name(self)`, and the function must be a generator.  The `self` arguement is a reference to the `Task` object wrapping the function, and it will be passed in when the task is initialized.  See sample.py for an example task function.
+`func` - This is the actual task function.  This function must have the signature `func_name(self)`, and the function must be a generator.  The `self` argument is a reference to the `Task` object wrapping the function, and it will be passed in when the task is initialized.  See sample.py for an example task function.
 
 </ul><ul>
 
@@ -183,7 +183,7 @@ This returns the number of messages in the incoming queue.
 
 <ul>
 
-This adds a message to the incoming queue.  This should _almost_ never be called directly.  The one exception is that this can be used to pass arguments into a task, in the main thread, before the scheduler is started.  Once the scheduler is started, messages should be passed exclusively through the OS, and this should never be called directly.  Note also that a message passed this way does not need to be a message object.  If you are using this to pass in arguments, use whatever sort of data structure you want, but make sure that the task expects it.  (If you deliver your arguments to the task before initialization, you can use `self.recv()` in the initialization code to retreive them.)
+This adds a message to the incoming queue.  This should _almost_ never be called directly.  The one exception is that this can be used to pass arguments into a task, in the main thread, before the scheduler is started.  Once the scheduler is started, messages should be passed exclusively through the OS, and this should never be called directly.  Note also that a message passed this way does not need to be a message object.  If you are using this to pass in arguments, use whatever sort of data structure you want, but make sure that the task expects it.  (If you deliver your arguments to the task before initialization, you can use `self.recv()` in the initialization code to retrieve them.)
 
 </ul>
 </ul>
@@ -222,7 +222,7 @@ Note that blocking conditions _must_ be returned as lists, even if there is only
 
 <ul>
 
-By itself, this blocks the current task for the specified amount of time.  This does not guarantee that the task will begin execution as soon as the time has elasped, but it does guarantee that it will not resume until that time has passed.  If this task is higher priority than the running task and all other ready tasks, then this task will resume as soon as control is passed back to the scheduler and the OS has completed its maintenance.
+By itself, this blocks the current task for the specified amount of time.  This does not guarantee that the task will begin execution as soon as the time has elapsed, but it does guarantee that it will not resume until that time has passed.  If this task is higher priority than the running task and all other ready tasks, then this task will resume as soon as control is passed back to the scheduler and the OS has completed its maintenance.
 
 </ul><ul>
 
@@ -441,7 +441,7 @@ for msg in msgs:
 
 ### Mutual Exclusion
 
-We currently have a Mutex object (with priority inheritance), but this isn't really a complete set of mutual exclusion tools.  FreeRTOS has Binary Semaphores, Counting Semaphoes, and Recursive Mutexes.  Because this uses voluntary preemption, these are not terribly high priority, as tasks can just _not yield_ during critical sections, rather than needing to use mutual exclusion.  There are still cases where mutual exclusion is necessary though.  This includes things like locking external hardware that has time consuming I/O, where we might want to yield for some time to allow the I/O to complete, without allowing other tasks to tamper with that hardware while we are waiting.  In addition, some processors have vector processing and/or floating point units that are slow enough to warrant yielding while waiting, without giving up exclusive access to those units.  The relevance of these is not clear in the context of Python, but we definitely want some kind of mutual exclusion.
+We currently have a Mutex object (with priority inheritance), but this isn't really a complete set of mutual exclusion tools.  FreeRTOS has Binary Semaphores, Counting Semaphores, and Recursive Mutexes.  Because this uses voluntary preemption, these are not terribly high priority, as tasks can just _not yield_ during critical sections, rather than needing to use mutual exclusion.  There are still cases where mutual exclusion is necessary though.  This includes things like locking external hardware that has time consuming I/O, where we might want to yield for some time to allow the I/O to complete, without allowing other tasks to tamper with that hardware while we are waiting.  In addition, some processors have vector processing and/or floating point units that are slow enough to warrant yielding while waiting, without giving up exclusive access to those units.  The relevance of these is not clear in the context of Python, but we definitely want some kind of mutual exclusion.
 
 In FreeRTOS, Mutexes have a priority inheritance mechanic.  By default, this is also true in pyRTOS, because blocking conditions are checked in task priority order.  Binary semaphores are effectively mutexes without priority inheritance.  How would we handle request order based locks?  I suppose we could have a queue in the semaphore that keeps track of who asked first and prioritizes in that order.  This would be significantly more expensive than priority inheritance, but it shouldn't be too hard to do.
 
