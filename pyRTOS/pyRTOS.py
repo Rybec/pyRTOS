@@ -8,29 +8,29 @@ tasks = []
 
 
 def add_task(task):
-    if task.thread == None:
-        task.initialize()
+	if task.thread == None:
+		task.initialize()
 
-    tasks.append(task) 
+	tasks.append(task) 
 
-    tasks.sort(key=lambda t: t.priority)
+	tasks.sort(key=lambda t: t.priority)
 
 
 
 def start(scheduler=None):
-    global tasks
+	global tasks
 
-    if scheduler == None:
-        scheduler = pyRTOS.scheduler.default_scheduler
+	if scheduler == None:
+		scheduler = pyRTOS.scheduler.default_scheduler
 
 
-    run = True
-    while run:
-        messages = scheduler(tasks)
-        pyRTOS.message.deliver_messages(messages, tasks)
+	run = True
+	while run:
+		messages = scheduler(tasks)
+		pyRTOS.message.deliver_messages(messages, tasks)
 
-        if len(tasks) == 0:
-            run = False
+		if len(tasks) == 0:
+			run = False
 
 
 
@@ -38,31 +38,31 @@ def start(scheduler=None):
 
 # Timeout   - Task is delayed for no less than the specified time.
 def timeout(seconds):
-        start = time.monotonic()
+		start = time.monotonic()
 
-        while True:
-            yield time.monotonic() - start >= seconds
+		while True:
+			yield time.monotonic() - start >= seconds
 
 def timeout_ns(nanoseconds):
-        start = time.monotonic_ns()
+		start = time.monotonic_ns()
 
-        while True:
-            yield time.monotonic_ns() - start >= nanoseconds
+		while True:
+			yield time.monotonic_ns() - start >= nanoseconds
 
 # Cycle Delay - Task is delayed for no less than the number OS loops specified.
 def delay(cycles):
-    ttl = cycles
-    while True:
-        if ttl > 0:
-            ttl -= 1
-            yield False
-        else:
-            yield True
+	ttl = cycles
+	while True:
+		if ttl > 0:
+			ttl -= 1
+			yield False
+		else:
+			yield True
 
 # Message   - Task is waiting for a message.
 def wait_for_message(self):
-    while True:
-        yield self.message_count() > 0
+	while True:
+		yield self.message_count() > 0
 
 # API I/O   - I/O done by the pyRTOS API has completed.
 #             This blocking should be automatic, but API
@@ -99,33 +99,33 @@ def wait_for_message(self):
 # API Elements
 
 class Mutex(object):
-    def __init__(self):
-        self.locked = False
+	def __init__(self):
+		self.locked = False
 
-    # This returns a task block condition generator.  It should
-    # only be called using something like "yield [mutex.lock()]"
-    # or "yield [mutex.lock(), timeout(1)]"
-    def lock(self):
-        has_lock = False
+	# This returns a task block condition generator.  It should
+	# only be called using something like "yield [mutex.lock()]"
+	# or "yield [mutex.lock(), timeout(1)]"
+	def lock(self):
+		has_lock = False
 
-        while True:
-            if has_lock:
-                yield True
-            elif self.locked:
-                yield False
-            else:
-                self.locked = True
-                has_lock = True
-                yield True
+		while True:
+			if has_lock:
+				yield True
+			elif self.locked:
+				yield False
+			else:
+				self.locked = True
+				has_lock = True
+				yield True
 
-    def nb_lock(self):
-        if self.locked:
-            return False
-        else:
-            self.locked = True
-            return True
+	def nb_lock(self):
+		if self.locked:
+			return False
+		else:
+			self.locked = True
+			return True
 
-    def unlock(self):
-        self.locked = False
+	def unlock(self):
+		self.locked = False
 
 
