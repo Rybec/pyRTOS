@@ -118,7 +118,7 @@ class Mutex(object):
                 has_lock = True
                 yield True
 
-    def nonblocking_lock(self):
+    def nb_lock(self):
         if self.locked:
             return False
         else:
@@ -127,19 +127,5 @@ class Mutex(object):
 
     def unlock(self):
         self.locked = False
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

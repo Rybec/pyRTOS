@@ -32,7 +32,7 @@ class MessageQueue(object):
         self.buffer = []
 
     # This is a blocking condition
-    def push(self, msg):
+    def send(self, msg):
         sent = False
 
         while True:
@@ -44,7 +44,7 @@ class MessageQueue(object):
             else:
                 yield False
 
-    def nonblocking_push(self, msg):
+    def nb_send(self, msg):
         if len(self.buffer) < self.capacity:
             self.buffer.append(msg)
             return True
@@ -54,7 +54,7 @@ class MessageQueue(object):
 
     # This is a blocking condition.
     # out_buffer should be a list
-    def pop(self, out_buffer):
+    def recv(self, out_buffer):
         received = False
         while True:
             if received:
@@ -67,7 +67,7 @@ class MessageQueue(object):
                 yield False
 
     
-    def nonblocking_pop(self):
+    def nb_recv(self):
         if len(self.buffer) > 0:
             return self.buffer.pop(0)
         else:
