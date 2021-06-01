@@ -364,6 +364,78 @@ This is the nonblocking receive.  It will return a message, if there is one in t
 </ul>
 </ul>
 
+## Templates & Examples
+
+### Task Template
+
+```
+def task(self):
+
+	# Uncomment this to get argument list passed in with Task.deliver()
+	# (If you do this, it will crash if no arguments are passed in
+	# prior to initialization.)
+	# args = self.recv()[0]
+
+	### Setup code here
+
+
+
+	### End Setup code
+
+	# Pass control back to RTOS
+	yield
+
+	# Main Task Loop
+	while True:
+		### Work code here
+
+
+
+		### End Work code
+		yield # (Do this at least once per loop)
+```
+
+### Message Handling Example Template
+
+
+```
+msgs = self.recv()
+for msg in msgs:
+	if msg.type == pyRTOS.QUIT:
+		# If your task should never return, remove this section
+		### Tear Down code here
+
+
+
+		### End Tear Down Code
+		return
+	elif msg.type == TEMP:
+		# TEMP is a user defined integer constant larger than 127
+		# Temperature data will be in msg.message
+		### Code here
+
+
+
+		### End Code
+
+# This will silently throw away messages that are not
+# one of the specified types, unless you add an else.
+```
+
+### Timeout & Delay Examples
+
+
+### Message Passing Examples
+
+
+### Message Queue Examples
+
+
+### Mutex Example
+
+
+
+
 
 ## Future Additions
 
