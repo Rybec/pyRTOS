@@ -54,15 +54,15 @@ def touch_handler(self):
 		if touch == BOTH and touched != BOTH:
 			touched = BOTH
 			self.send(pyRTOS.Message(COLOR_DATA, "touch",
-			                         "renderer", (0b001, 0b111, 0b000)))
+			                         "renderer", (0b000, 0b111, 0b000)))
 		elif touch == PAD and touched != PAD:
 			touched = PAD
 			self.send(pyRTOS.Message(COLOR_DATA, "touch",
-			                         "renderer", (0b111, 0b000, 0b001)))
+			                         "renderer", (0b111, 0b000, 0b000)))
 		elif touch == ROTA and touched != ROTA:
 			touched = ROTA
 			self.send(pyRTOS.Message(COLOR_DATA, "touch",
-			                         "renderer", (0b000, 0b001, 0b111)))
+			                         "renderer", (0b000, 0b000, 0b111)))
 		elif touch == NONE and touched != NONE:
 				touched = NONE
 				self.send(pyRTOS.Message(COLOR_RESUME, "touch", "renderer"))
