@@ -53,7 +53,6 @@ class Task(object):
 		state_change = next(self.thread)
 
 		if state_change != None:
-			print("Blocking", self.name, "for", state_change)
 			self.ready_conditions = state_change
 			self.state = BLOCKED
 
