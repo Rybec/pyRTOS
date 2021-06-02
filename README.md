@@ -254,6 +254,14 @@ This delay is based on OS cycles rather than time.  This allows for delays that 
 
 </ul>
 
+**```wait_for_message(self)```**
+
+<ul>
+
+This blocks until a message is added to the incoming message queue for this task.  `self` should be the `Task` object of the calling task.
+
+</ul>
+
 ***UFunction***
 
 <ul>
@@ -424,18 +432,85 @@ for msg in msgs:
 
 ### Timeout & Delay Examples
 
+Delay for 0.5 seconds
+`yield [pyRTOS.timeout(0.5)]`
+
+Delay for 100 nanoseconds
+`yield [pyRTOS.timeout_ns(100)]`
+
+Delay for 10 OS cycles (other tasks must yield 10 times, unless all other tasks are suspended or blocked)
+`yield [pyRTOS.delay(10)]
 
 ### Message Passing Examples
 
+Send temperature of 45 degrees to display task (TEMP constant is set to some value > 127)
+`self.send(pyRTOS.Message(TEMP, self, "display", 45))`
+This message will be delivered at the next yield.
+
+Instruct hum_read task to read the humidity sensor and send back the result, when wait for a message to arrive (READ_HUM constant is set to some value > 127)
+
+```
+self.send(pyRTOS.Message(READ_HUM, self, "hum_read"))
+yield [wait_for_message(self)]
+```
 
 ### Message Queue Examples
 
+Create a `MessageQueue` and pass it into some newly created tasks, so it can be retrived during initialization of the tasks
 
-### Mutex Example
+```
+display = pyRTOS.Task(display_task, priority=1, "display")
+tsensor = pyRTOS.Task(tsensor_task, priority=2, "tsensor")
+
+temp_queue = MessageQueue(capacity=4)
+
+display.deliver(temp_queue)
+tsensor.deliver(temp_queue)
+
+pyRTOS.add_task(display)
+pyRTOS.add_task(tsensor)
+```
+
+Write the temperature to a `MessageQueue` (if the queue is full, this will block until it has room)
+
+`yield [temp_queue.send(current_temp)]`
 
 
+Read the temperature from a `MessageQueue` (if the queue is empty, this will block until a message is added)
 
+```
+temp_buffer = []
+yield [temp_queue.recv(temp_buffer)]
 
+temp = temp_buffer.pop()
+```
+
+### Mutex Examples
+
+Create a `Mutex` and pass it into some newly created tasks
+
+```
+temp_printer = pyRTOS.Task(temp_task, priority=3, "temp_printer")
+hum_printer = pyRTOS.Task(hum_task, priority=3, "hum_printer")
+
+print_mutex = pyRTOS.Mutex()
+
+temp_printer.deliver(print_mutex)
+hum_printer.deliver(print_mutex)
+```
+
+Use a mutex to avoid collisions when printing multiple lines of data  (Note that it should never be necessary to actually do this, since no preemption occurs without a yield.  This should only be necessary when at least one task yields _within_ the code that needs lock protection.)
+
+```
+yield [print_mutex.lock()]
+
+print("The last five temperature readings were:")
+
+for temp in temps:
+	print(temp, "C")
+
+print_mutex.unlock()
+```
 
 ## Future Additions
 
