@@ -4,6 +4,27 @@ import touchio
 
 import pyRTOS
 
+###
+# pyRTOS Sample Program for the Adafruit Rotary Trinkey
+#
+# Author: Ben Williams
+#
+# Description:
+#
+# This program uses pyRTOS to run three tasks: a touch input 
+# handler, a rainbow color cycler, and a renderer that sends
+# color output to the NeoPixel.  When no input is present,
+# the NeoPixel will cycle through a rainbow color effect.
+# When the touch strip on the edge of the Trinkey is being
+# touched, the NeoPixel will display red.  When the bottom
+# pin of the three rotary encoder pins in touched, the
+# NeoPixel will display blue.  When both the touch strip and
+# the bottom rotary encode pin are touched, the NeoPixel
+# will display green.  When touch input is removed, the
+# NeoPixel will return to the rainbow cycle, wherever it
+# would have been, had the touch input never happened.
+###
+
 
 # User defined message types start at 128
 COLOR_DATA = 128
