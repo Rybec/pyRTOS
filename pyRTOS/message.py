@@ -1,4 +1,4 @@
-import pyRTOS.task
+import pyRTOS
 
 # Message Types
 QUIT = 0
@@ -16,7 +16,7 @@ class Message(object):
 
 def deliver_messages(messages, tasks):
 	for message in messages:
-		if type(message.target) == pyRTOS.task.Task:
+		if type(message.target) == pyRTOS.Task:
 			message.target.deliver(message)
 		else:
 			targets = filter(lambda t: message.target == t.name, tasks)
@@ -72,11 +72,4 @@ class MessageQueue(object):
 			return self.buffer.pop(0)
 		else:
 			return None
-
-
-
-
-
-
-
 

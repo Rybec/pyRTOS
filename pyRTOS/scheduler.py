@@ -1,4 +1,4 @@
-import pyRTOS.task
+import pyRTOS
 
 
 def default_scheduler(tasks):
@@ -6,25 +6,25 @@ def default_scheduler(tasks):
 		running_task = None
 
 		for task in tasks:
-			if task.state == pyRTOS.task.READY:
+			if task.state == pyRTOS.READY:
 				if running_task == None:
 					running_task = task
-			elif task.state == pyRTOS.task.BLOCKED:
+			elif task.state == pyRTOS.BLOCKED:
 				if True in map(lambda x: next(x), task.ready_conditions):
-					task.state = pyRTOS.task.READY
+					task.state = pyRTOS.READY
 					task.ready_conditions = []
 					if running_task == None:
 						running_task = task
-			elif task.state == pyRTOS.task.RUNNING:
+			elif task.state == pyRTOS.RUNNING:
 				if (running_task == None) or \
 				   (task.priority <= running_task.priority):
 					running_task = task
 				else:
-					task.state = pyRTOS.task.READY
+					task.state = pyRTOS.READY
 
 
 		if running_task:
-			running_task.state = pyRTOS.task.RUNNING
+			running_task.state = pyRTOS.RUNNING
 
 			try:
 				messages = running_task.run_next()

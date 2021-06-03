@@ -1,8 +1,9 @@
 import time
 
-import pyRTOS.task
-import pyRTOS.scheduler
-import pyRTOS.message
+import pyRTOS
+
+version = 0.1
+
 
 tasks = []
 
@@ -21,13 +22,13 @@ def start(scheduler=None):
 	global tasks
 
 	if scheduler == None:
-		scheduler = pyRTOS.scheduler.default_scheduler
+		scheduler = pyRTOS.default_scheduler
 
 
 	run = True
 	while run:
 		messages = scheduler(tasks)
-		pyRTOS.message.deliver_messages(messages, tasks)
+		pyRTOS.deliver_messages(messages, tasks)
 
 		if len(tasks) == 0:
 			run = False

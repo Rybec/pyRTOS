@@ -1,0 +1,4 @@
+# Ignore everything in this directory (build artifacts don't belong in a Git repo)
+*
+# Except this file
+!.gitignore
