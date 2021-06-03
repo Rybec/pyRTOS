@@ -544,6 +544,10 @@ Would spinlocks be relevant/useful in a single threaded, voluntary preemption sy
 
 We need to look through the FreeRTOS documentation, to see what other things a fully featured RTOS could have.
 
+### Size
+
+Because this is intended for use on microcontrollers, size is a serious concern.  The code is very well commented, but this means that comments take up a very significant fraction of the space.  As of this writing, the code is over 15KB, and on my Rotary Trinkey, it uses a total of 18KB.  A version without the comments would probably only use 9KB or 10KB.  Better yet, perhaps we need to start providing release packages that are compiled into .mpy files.  I'll look into how to provide releases in Github and see if that is a reasonable option.
+
 ## Notes
 
 This needs more extensive testing.  The Mutex class has not been tested.  We also need more testing on block conditions.  `sample.py` uses `wait_for_message()` twice, successfully.  `timeout()` is also tested in sample.py.
