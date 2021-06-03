@@ -546,7 +546,7 @@ We need to look through the FreeRTOS documentation, to see what other things a f
 
 ### Size
 
-Because this is intended for use on microcontrollers, size is a serious concern.  The code is very well commented, but this means that comments take up a very significant fraction of the space.  As of this writing, the code is over 15KB, and on my Rotary Trinkey, it uses a total of 18KB.  A version without the comments would probably only use 9KB or 10KB.  Better yet, perhaps we need to start providing release packages that are compiled into .mpy files.  I'll look into how to provide releases in Github and see if that is a reasonable option.
+Because this is intended for use on microcontrollers, size is a serious concern.  The code is very well commented, but this means that comments take up a very significant fraction of the space.  We are releasing in .mpy format for Circuit Python now, which is cutting the size down to around 5KB.  Maybe we should include a source version with comments stripped out in future releases.
 
 ## Notes
 
