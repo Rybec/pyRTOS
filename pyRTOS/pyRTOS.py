@@ -99,6 +99,8 @@ def wait_for_message(self):
 
 # API Elements
 
+# Mutex with priority inheritance
+# (highest priority waiting task gets the lock)
 class Mutex(object):
 	def __init__(self):
 		self.locked = False
@@ -130,3 +132,35 @@ class Mutex(object):
 		self.locked = False
 
 
+# Mutex with request order priority
+# (first-come-first-served priority for waiting tasks)
+class BinarySemaphore(object):
+	def __init__(self):
+		self.wait_queue = []
+		self.owner = None
+		
+	# This returns a task block condition generator
+	def lock(self, task):
+		if self.owner == None:
+			self.owner = task
+		else:
+			self.wait_queue.append(task)
+
+		while True:
+			if self.owner == self:
+				yield True
+			else:
+				yield False
+
+	def nb_lock(self, task):
+		if self.owner == None:
+			self.owner = task
+			return True
+		else:
+			return False
+
+	def unlock(self):
+		if len(self.wait_queue) > 0:
+			self.owner = self.wait_queue.pop(0)
+		else:
+			self.wait_queue = None
