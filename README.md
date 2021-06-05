@@ -87,7 +87,7 @@ This is a simple mutex with priority inheritance.
 
 <ul>
 
-This will attempt acquire the lock on the mutex, with a blocking call.  Note that because this is a blocking call, the returned generator must be passed to a yield in a list, eg. `yield [mutex.lock()]`.
+This will attempt to acquire the lock on the mutex, with a blocking call.  Note that because this is a blocking call, the returned generator must be passed to a yield in a list, eg. `yield [mutex.lock()]`.
 
 </ul>
 </ul>
@@ -110,6 +110,47 @@ This nonblocking lock will attempt to acquire the lock on the mutex.  It will re
 <ul>
 
 Use this to release the lock on the mutex.  If the mutex is not locked, this will have no effect.  Note that there is no guard to prevent a mutex from being unlocked by some task other than the one that acquired it, so it is up to the user to make sure a mutex locked in one task is not accidentally unlocked in some other task.
+
+</ul>
+</ul>
+
+**```class BinarySemaphore()```**
+
+<ul>
+
+This is another simple mutex, but unlike `Mutex()`, it uses request order priority.  Essentially, this is a first-come-first-served mutex.
+
+</ul>
+
+<ul>
+
+**```BinarySemaphore.lock()```**
+
+<ul>
+
+This will attempt to acquire the lock on the mutex, with a blocking call.  Note that because this is a blocking call, the returned generator must be passed to a yield in a list, eg. `yield [mutex.lock()]`.
+
+</ul>
+</ul>
+
+<ul>
+
+**```BinarySemaphore.nb_lock()```**
+
+<ul>
+
+This nonblocking lock will attempt to acquire the lock on the mutex.  It will return `True` if the lock is successfully acquired, otherwise it will immediately return `False`.
+
+</ul>
+</ul>
+
+<ul>
+
+**```BinarySemaphore.unlock()```**
+
+<ul>
+
+Use this to release the lock on the mutex.  If the mutex is not locked, this will have no effect.  Note that there is no guard to prevent a `BinarySemaphore()` from being unlocked by some task other than the one that acquired it, so it is up to the user to make sure a binary semaphore locked in one task is not accidentally unlocked in some other task.  When this is called, if there are other tasks waiting for this lock, the first of those to have requested it will acquire the lock.
 
 </ul>
 </ul>
