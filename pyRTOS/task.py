@@ -31,6 +31,8 @@ SUSPENDED = 3   # Task is waiting for some other task to unsuspend
 
 
 class Task(object):
+	_out_messages = []
+
 	def __init__(self, func, priority=255, name=None):
 		self.func = func
 		self.priority = priority
@@ -39,7 +41,6 @@ class Task(object):
 		self.ready_conditions = []
 		self.thread = None  # This is for the generator object
 		self._in_messages = []
-		self._out_messages = []
 
 	# If the thread function is well behaved, this will get the generator
 	# for it, then it will start it, it will run its initialization code,
@@ -56,8 +57,8 @@ class Task(object):
 			self.ready_conditions = state_change
 			self.state = BLOCKED
 
-		msgs = self._out_messages
-		self._out_messages = []
+		msgs = Task._out_messages
+		Task._out_messages = []
 
 		return msgs
 
