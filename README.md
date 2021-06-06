@@ -9,6 +9,27 @@ pyRTOS was modeled after FreeRTOS, with some critical differences.  The biggest 
 
 To the best of my knowledge, aside from voluntary preemption, the task scheduling is identical to that found in FreeRTOS.  Tasks are assigned numerical priorities, the lower the number the higher the priority, and the highest priority ready task is given CPU time, where ties favor the currently running task.  Alternative scheduling algorithms may be added in the future.
 
+## Table of Contents
+
+[Basic Usage](#basic-usage)
+- [Tasks](#tasks)
+- [Messages](#messages)
+[pyRTOS API](#pyrtos-api)
+- [Main API](#main-api)
+- [Mutual Exclusion & Synchronization](#mutual-exclusion--synchronization)
+[Task API](#task-api)
+[Task Block Conditions](#task-block-conditions)
+[Message API](#message-api)
+[Templates & Examples](#templates--examples)
+- [Task Template](#task-template)
+- [Message Handling Example Template](#message-handling-example-template)
+- [Timeout & Delay Examples](#timeout--delay-examples)
+- [Messages Passing Examples](#message-passing-examples)
+- [Message Queue Exmaples](#message-queue-examples)
+- [Mutex Examples](#mutex-examples)
+[Future Additions](#future-additions)
+[Notes](#notes)
+
 ## Basic Usage
 
 pyRTOS separates functionality into tasks.  A task is similar to a thread in a desktop operating system, except that in pyRTOS tasks cannot be migrated to other processors or cores.  This is due to limitations with CircuitPython.  In theory, though, it should be possible to write a scheduler with thread migration, for MicroPython, which does support hardware multithreading.
@@ -72,6 +93,8 @@ This begins execution.  This function will only return when all tasks have termi
 `scheduler` - When this argument is left with its default value, the default scheduler is used.  Since no other schedulers currently exist, this is really only useful if you want to write your own scheduler.  Otherwise, just call `start()` without an argument.  This should be called only after you have added all tasks.  Additional tasks can be added while the scheduler is running (within running tasks), but this should generally be avoided.  (A better option, if you need to have a task that is only activated once some condition is met, is to create the task and then immediately suspend it.  This will not prevent the initialization code from running though.  If you need to prevent initialization code from running until the task is unsuspended, you can place the first yield in the task before initialization instead of after.)
 
 </ul>
+
+### Mutual Exclusion & Synchronization
 
 **```class Mutex()```**
 
