@@ -133,7 +133,7 @@ class Mutex(object):
 				else:
 					yield False
 
-	def nb_lock(self, task):
+	def nb_lock(self, task=None):
 		# Old behavior, remove on next major version
 		if task == None:
 			if self.locked:
