@@ -161,7 +161,7 @@ class BinarySemaphore(object):
 				self.wait_queue.remove(task)
 
 	def nb_lock(self, task):
-		if self.owner == None:
+		if self.owner == None or self.owner == task:
 			self.owner = task
 			return True
 		else:
