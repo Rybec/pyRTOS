@@ -108,25 +108,45 @@ class Mutex(object):
 	# This returns a task block condition generator.  It should
 	# only be called using something like "yield [mutex.lock()]"
 	# or "yield [mutex.lock(), timeout(1)]"
-	def lock(self):
-		has_lock = False
+	def lock(self, task=None):
+		# This is broken behavior.  It should be removed (and
+		# task default removed) on the next major version.
+		if task == None:
+			has_lock = False
 
-		while True:
-			if has_lock:
+			while True:
+				if has_lock:
+					yield True
+				elif self.locked:
+					yield False
+				else:
+					self.locked = True
+					has_lock = True
+					yield True
+		# This is new behavior and should fully replace the old
+		# behavior on the next major version.
+		else:
+			if self.locked == False or self.locked == task:
+				self.locked = task
 				yield True
-			elif self.locked:
+			else:
 				yield False
+
+	def nb_lock(self, task):
+		# Old behavior, remove on next major version
+		if task == None:
+			if self.locked:
+				return False
 			else:
 				self.locked = True
-				has_lock = True
-				yield True
-
-	def nb_lock(self):
-		if self.locked:
-			return False
+				return True
+		# New behavior
 		else:
-			self.locked = True
-			return True
+			if self.locked == False or self.locked == task:
+				self.locked = task
+				return True
+			else:
+				return False
 
 	def unlock(self):
 		self.locked = False
