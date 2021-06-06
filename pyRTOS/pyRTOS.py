@@ -141,16 +141,24 @@ class BinarySemaphore(object):
 		
 	# This returns a task block condition generator
 	def lock(self, task):
-		if self.owner == None:
-			self.owner = task
-		else:
-			self.wait_queue.append(task)
+		self.wait_queue.append(task)
 
-		while True:
-			if self.owner == self:
-				yield True
-			else:
-				yield False
+		try:
+			while True:
+				if self.owner == None and self.wait_queue[0] == task:
+					self.owner = self.wait_queue.pop(0)
+					yield True
+				elif self.owner == self:
+					yield True
+				else:
+					yield False
+		finally:
+			# If this is combined with other block conditions,
+			# for example timeout, and one of those conditions
+			# unblocks before this, we need to prevent this
+			# from taking the lock and never releasing it.
+			if task in self.wait_queue:
+				self.wait_queue.remove(task)
 
 	def nb_lock(self, task):
 		if self.owner == None:
@@ -160,7 +168,7 @@ class BinarySemaphore(object):
 			return False
 
 	def unlock(self):
-		if len(self.wait_queue) > 0:
-			self.owner = self.wait_queue.pop(0)
-		else:
-			self.wait_queue = None
+		self.owner = None
+
+
+
