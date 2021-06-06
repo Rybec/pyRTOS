@@ -83,22 +83,32 @@ This is a simple mutex with priority inheritance.
 
 <ul>
 
-**```Mutex.lock()```**
+**```Mutex.lock(task)```**
 
 <ul>
 
-This will attempt to acquire the lock on the mutex, with a blocking call.  Note that because this is a blocking call, the returned generator must be passed to a yield in a list, eg. `yield [mutex.lock()]`.
+This will attempt to acquire the lock on the mutex, with a blocking call.  Note that because this is a blocking call, the returned generator must be passed to a yield in a list, eg. `yield [mutex.lock(self)]`.
+
+</ul>
+<ul>
+
+`task` - The task requesting the lock.
 
 </ul>
 </ul>
 
 <ul>
 
-**```Mutex.nb_lock()```**
+**```Mutex.nb_lock(task)```**
 
 <ul>
 
 This nonblocking lock will attempt to acquire the lock on the mutex.  It will return `True` if the lock is successfully acquired, otherwise it will immediately return `False`.
+
+</ul>
+<ul>
+
+`task` - The task requesting the lock.
 
 </ul>
 </ul>
@@ -124,22 +134,32 @@ This is another simple mutex, but unlike `Mutex()`, it uses request order priori
 
 <ul>
 
-**```BinarySemaphore.lock()```**
+**```BinarySemaphore.lock(task)```**
 
 <ul>
 
-This will attempt to acquire the lock on the mutex, with a blocking call.  Note that because this is a blocking call, the returned generator must be passed to a yield in a list, eg. `yield [mutex.lock()]`.
+This will attempt to acquire the lock on the mutex, with a blocking call.  Note that because this is a blocking call, the returned generator must be passed to a yield in a list, eg. `yield [mutex.lock(task)]`.
+
+</ul>
+<ul>
+
+`task` - The task requesting the lock.
 
 </ul>
 </ul>
 
 <ul>
 
-**```BinarySemaphore.nb_lock()```**
+**```BinarySemaphore.nb_lock(task)```**
 
 <ul>
 
 This nonblocking lock will attempt to acquire the lock on the mutex.  It will return `True` if the lock is successfully acquired, otherwise it will immediately return `False`.
+
+</ul>
+<ul>
+
+`task` - The task requesting the lock.
 
 </ul>
 </ul>
