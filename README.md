@@ -14,12 +14,17 @@ To the best of my knowledge, aside from voluntary preemption, the task schedulin
 [Basic Usage](#basic-usage)
 - [Tasks](#tasks)
 - [Messages](#messages)
+
 [pyRTOS API](#pyrtos-api)
 - [Main API](#main-api)
 - [Mutual Exclusion & Synchronization](#mutual-exclusion--synchronization)
+
 [Task API](#task-api)
+
 [Task Block Conditions](#task-block-conditions)
+
 [Message API](#message-api)
+
 [Templates & Examples](#templates--examples)
 - [Task Template](#task-template)
 - [Message Handling Example Template](#message-handling-example-template)
@@ -27,7 +32,9 @@ To the best of my knowledge, aside from voluntary preemption, the task schedulin
 - [Messages Passing Examples](#message-passing-examples)
 - [Message Queue Exmaples](#message-queue-examples)
 - [Mutex Examples](#mutex-examples)
+
 [Future Additions](#future-additions)
+
 [Notes](#notes)
 
 ## Basic Usage
