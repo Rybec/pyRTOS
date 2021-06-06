@@ -126,11 +126,12 @@ class Mutex(object):
 		# This is new behavior and should fully replace the old
 		# behavior on the next major version.
 		else:
-			if self.locked == False or self.locked == task:
-				self.locked = task
-				yield True
-			else:
-				yield False
+			while True:
+				if self.locked == False or self.locked == task:
+					self.locked = task
+					yield True
+				else:
+					yield False
 
 	def nb_lock(self, task):
 		# Old behavior, remove on next major version
