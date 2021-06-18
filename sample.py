@@ -78,5 +78,7 @@ def sample_task(self):
 
 pyRTOS.add_task(pyRTOS.Task(sample_task, name="task1"))
 pyRTOS.add_task(pyRTOS.Task(sample_task, name="task2"))
+pyRTOS.add_service_routine(lambda: print("Service Routine Executing"))
+
 
 pyRTOS.start()

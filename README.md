@@ -25,6 +25,8 @@ To the best of my knowledge, aside from voluntary preemption, the task schedulin
 
 [Message API](#message-api)
 
+[OS API](#os-api)
+
 [Templates & Examples](#templates--examples)
 - [Task Template](#task-template)
 - [Message Handling Example Template](#message-handling-example-template)
@@ -462,6 +464,37 @@ This is the nonblocking receive.  It will return a message, if there is one in t
 
 </ul>
 </ul>
+
+## OS API
+
+The OS API provides tools for extending pyRTOS.  Some things just do not make sense to use tasks to do.  Some things need higher reliability than tasks.
+
+For the most part, messing around inside the OS is not a great idea.  While part of the pyRTOS project policy is to not break userspace within a given major version, this policy does not hold for the OS API.  So when deciding whether to use the OS API, keep in mind that you may be creating a dependency on a specific release or even commit.
+
+### Service Routines
+
+Service routines are OS extensions that run every OS loop.  An OS loop occurs every time a task yields.  Service routines have no priority mechanic, and they run in the order they are registered.  Registered service routines are intended to be permanent.  While it is possible to remove them, this is part of the OS implementation that may change without warning, and there is no formal mechanic for removing a service routine.
+
+Service routines are simple functions, which take no arguments and return nothing.  Because they run every OS loop, service routines should be small and fast, much like ISRs in RTOSs that use real-time preemption.  Normally, service routines should also be stateless.  Service routines that need to communicate with tasks can be created with references to global `MessageQueue` or `Task` objects.  As OS extensions, it is appropriate for service routines to call `Task.deliver()` to send tasks messages, however note that creating message objects is expensive.  Sending lighter messages in `MessageQueue`s is cheaper, and future features may provide even better options.
+
+Service routines that absolutely need internal state _can be_ created by wrapping a generator in a lambda function.  Note that this will produce much heavier service routines than normal, so this should be used sparingly and only when necessary.  To do this, first create a generator function.  The function itself can take arguments, but the yield cannot.  Ideally, there should be a single yield, within an infinite loop, that takes no arguments and returns nothing.  Each OS loop, the service routine will begin execution directly after the yield, and it will end when it gets back to the yield.  The generator must never return, or a StopIteration exception will be thrown, crashing the OS\*.  Once the generator has been created by calling the function, wrap it in a lambda function like this: `lambda: next(gen)`.  This lambda function is your service routine, which should be registered with `add_service_routine()`.
+
+Use cases for service routines start with the kind of things ISRs are normally used for.  In CircuitPython (as of 6.3.0), there are no iterrupts.  If you need to regularly check if a pin normally used as an interrupt source, a service routine is a good place to do that.  Just like with an ISR, you should not handle the program business in the service routine.  Instead, the service routine should notify a task that will handle the business associated with the iterrupt.  Service routines can also be used to handle things that multiple tasks care about, to avoid the need for semaphores.  For example, if multiple tasks need network communication (generally avoid this is possible), a service routine can handle routing traffic between the network and the tasks.  Note though, that putting a large network stack in a service routine is a terrible idea that will starve your tasks of CPU time.  If you need something bigger than a very slim traffic routing routine, it should be put into a task rather than a service routine.
+
+\* No, we will not wrap the service routine OS code in a try/except statement.  This would increase the size of the OS and make it run more slowly.  Instead, write good code and follow the instructions in this document, and no errors will ever get to the OS.
+
+**```add_service_routine(service_routine)```**
+
+<ul>
+
+This adds a service routine to the OS, to be called every OS loop.
+
+</ul><ul>
+
+`service_routine` - A simple function that takes no argument and returns nothing.  If necessary, this can also be a wrapped generator, however stateful service routines like this will tie up memory and take a little longer to run, and thus should be used sparingly.
+
+</ul>
+
 
 ## Templates & Examples
 

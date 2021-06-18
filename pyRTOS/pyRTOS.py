@@ -6,6 +6,7 @@ version = 0.1
 
 
 tasks = []
+service_routines = []
 
 
 def add_task(task):
@@ -17,6 +18,9 @@ def add_task(task):
 	tasks.sort(key=lambda t: t.priority)
 
 
+def add_service_routine(service_routine):
+	service_routines.append(service_routine)
+
 
 def start(scheduler=None):
 	global tasks
@@ -24,9 +28,11 @@ def start(scheduler=None):
 	if scheduler == None:
 		scheduler = pyRTOS.default_scheduler
 
-
 	run = True
 	while run:
+		for service in service_routines:
+			service()
+
 		messages = scheduler(tasks)
 		pyRTOS.deliver_messages(messages, tasks)
 
