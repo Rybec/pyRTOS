@@ -13,7 +13,9 @@ To the best of my knowledge, aside from voluntary preemption, the task schedulin
 
 [Basic Usage](#basic-usage)
 - [Tasks](#tasks)
+- [Notifications](#notifications)
 - [Messages](#messages)
+- [Error Handling](#error-handling)
 
 [pyRTOS API](#pyrtos-api)
 - [Main API](#main-api)
@@ -61,15 +63,37 @@ Yields are also used to make certain blocking API calls.  The most common will l
 
 There are also some places tasks _should_ always yield.  Whenever a message is passed, it is placed on a local queue.  Messages in the local task outgoing queue are delivered when that task yields.  Other places where yielding is necessary for an action to resolve will be noted with the documentation on those actions.
 
+### Notifications
+
+Notifications are a lightweight message passing mechanic native to tasks.  When a task is created, a number of notifications can be specified.  These notifications can be used by other tasks or by Service Routines to communicate with the task.
+
+Notifications have a state and a value.  The state is an 8-bit (signed) value used to communicate the state of the notification.  The meaning of the state is user defined, but the default values for the notification functions assume 0 means the notification is not currently active and 1 means it is active.  Notifications also have a 32 bit value (also signed), which can be used as a counter or to communicate a small amount of data.  A series of functions are provided to send, read, and otherwise interact with notifications.
+
+A notification wait is provided as a Task Block Condition, allowing a task to wait for a notification to be set to a specific state.  This blocking wait can even be used on other tasks, to wait for a notification to be set to a particular value, for example, a task may want to send a notification, but only once that notification is inactive for the target task, and thus it might block to wait for that notification state to be set to 0, before it sends.
+
+Notifications are designed for lightweight message passing, both when full messages are not necessary and for Service Routines to communicate with tasks in a very fast and lightweight manner.  To communicate via notification, it is necessary to have a reference to the task you want to communicate with.
+
 ### Messages
 
-Message passing mechanics are built directly into tasks in pyRTOS.  Each task has its own incoming and outgoing mailbox.  Messages are delivered when the currently running task yields.  This message passing system is fairly simple.  Each message has a single sender and a single recipient.  Messages also have a type, which can be pyRTOS.QUIT or a user defined type (see sample.py).  User defined types start with integer values of 128 and higher.  Types below 128 are reserved for future use by the pyRTOS API.  Messages can also contain a message, but this is not required.  If the type field is sufficient to convey the necessary information, it is better to leave the message field empty, to save memory.  The message field can contain anything, including objects and lists.  If you need to pass arguments into a new task, one way to do this is to call `deliver()` on the newly created task object, with a list or tuple of arguments.   This will add the arguments to the task's message queue, allowing it to access the arguments during initialization.
+Message passing mechanics are built directly into tasks in pyRTOS, in the form of mailboxes.  By default tasks are lightweight, without mailboxes, but a constructor argument can be used to give a task has its own incoming mailbox.  Messages are delivered when the currently running task yields.  This message passing system is fairly simple.  Each message has a single sender and a single recipient.  Messages also have a type, which can be pyRTOS.QUIT or a user defined type (see sample.py).  User defined types start with integer values of 128 and higher.  Types below 128 are reserved for future use by the pyRTOS API.  Messages can also contain a message, but this is not required.  If the type field is sufficient to convey the necessary information, it is better to leave the message field empty, to save memory.  The message field can contain anything, including objects and lists.  If you need to pass arguments into a new task that has a mailbox, one way to do this is to call `deliver()` on the newly created task object, with a list or tuple of arguments.   This will add the arguments to the task's mailbox, allowing it to access the arguments during initialization.
 
-Checking messages is a critical part of any task that may receive messages.  Unchecked message queues can accumulate so many messages that your system runs out of memory.  If your task may receive messages, it is important to check the messages every loop.  Also be careful not to send low priority tasks too many messages without periodically blocking all higher priority tasks, so they can have time to process their message queues.  If a task that is receiving messages never gets CPU time, that is another way to run out of memory.
+Checking messages is a critical part of any task that may receive messages.  Unchecked mailboxes can accumulate so many messages that your system runs out of memory.  If your task may receive messages, it is important to check the mailbox every loop.  Also be careful not to send low priority tasks too many messages without periodically blocking all higher priority tasks, so they can have time to process their messages.  If a task that is receiving messages never gets CPU time, that is another way to run out of memory.
 
 Messages can be addressed with a reference to the target task object or with the name of the object.  Names can be any sort of comparable data, but numbers are the most efficient, while strings are the most readable.  Object reference addressing _must_ target an object that actually exists, otherwise the OS will crash.  Also note that keeping references of terminated tasks will prevent those tasks from being garbage collected, creating a potential memory leak.  Object references are the _fastest_ message addressing method, and they may provide some benefits when debugging, but its up to the user to understand and avoid the associated hazards.  Name addressing is much safer, however messages addressed to names that are not among the existing tasks will silently fail to be delivered, making certain bugs harder to find.  In addition, because name addresses require finding the associated object, name addressed messages will consume significantly more CPU time to deliver.
 
 sample.py has several examples of message passing.
+
+### Error Handling
+
+The error handling philosophy of pyRTOS is: Write good code.  The OS operates on the assumption that the user will write good code that does not cause issues for the OS.  If this assumption is broken, the OS _will_ crash when it comes across the broken elements, and it probably will not give you very meaningful error messages.  For example, attempting to send a notification to a `Task` that does not have notifications will cause a crash, with a message about the `Task` object having no `notifications` attribute (which is actually somewhat meaningful, in this particular case...).
+
+pyRTOS is designed to be used with CircuitPython, on devices that may have _very_ limited resources.  Adding OS level error handling would require significantly more code, using more flash and RAM space, as well as requiring more processing.  This is unacceptable.  As such, we will _not_ be adding OS error handling code to gracefully handle OS exceptions caused by incorrect use of the OS.  We will also not add special OS exceptions to throw when errors occur, nor will we add preemptive error detection.  These are all expensive, requiring significantly more code and processing time.  This means that errors that occur within the OS may not produce high quality error messages.  Users are encouraged to _write good code_, so that errors in the OS do not occur, and barring that, users can add error handling in their own code (but note that we do not condone writing poor code and then covering up the errors with error handling).  Please do not file issues for crashes caused by failures to use the APIs provided correctly.  Instead, fix your own code.
+
+That said, if there is a bug in the OS itself, please _do_ file an issue.  Users should not have to work around bugs in pyRTOS.  We apply the same standard, "Write good code" to ourselves, and if we have failed to do that, please let us know, so we can fix it.  If you are having a crash, and you are not sure where the error is occurring, please do your best to check your own code first, and if you cannot find the bug in your own code, feel free to file an issue.  We will do our best to track down the issue, as we have time (at the time of writing, this is a one man operation, and I am not getting paid for this, so it will likely not be immediate).  Do not be offended if we find the error in your code and inform you of that.  If the error is on our end, we will do our best to fix it in a timely manner (but again, one man team working for free, so no promises; this _is_ open source, so if it is urgent, please consider fixing it yourself).
+
+Similarly, if you find it difficult to correctly use the APIs, because the documentation is lacking or poorly written, please do file an issue, and we will try to improve it.  Our philosophy of "Write good code" also applies to our documentation.
+
+If this sounds harsh, we sincerely apologize.  We understand that this is not ideal.  Unfortunately, sacrifices must be made when working on systems with extremely limited resources.  Limited flash means our code has to be very small.  Limited RAM means we are limited in what we can keep track of.  Limited processing power means we have to weigh the value of every command we issue.  The purpose of an OS is to facilitate the tasks _the user_ deems important, and the more resources the OS uses, the fewer resources are available for the user's tasks.  Given such limited resources, keeping the OS as small and streamlined as possible takes precedence over error handling and debugging convenience.  If your application _needs_ the error handling, and you are confident your device has the resources, you can always create a fork of pyRTOS and add error handling yourself.  pyRTOS is pretty small, and it is not terribly difficult to understand, if you are familiar with Python, so this should not be very hard.
 
 ## pyRTOS API
 
@@ -209,7 +233,7 @@ Use this to release the lock on the mutex.  If the mutex is not locked, this wil
 
 ### Task API
 
-**```class Task(func, priority=255, name=None)```**
+**```class Task(func, priority=255, name=None, notifications=None, mailbox=False)```**
 
 <ul>
 
@@ -227,6 +251,14 @@ Task functions must be wrapped in `Task` objects that hold some context data.  T
 
 `name` - Naming tasks can make message passing easier.  See Basic Usage > Messages above for the pros and cons of using names.  If you do need to use names, using integer values will use less memory and give better performance than strings, but strings can be used for readability, if memory and performance are not an issue.
 
+</ul><ul>
+
+`notifications` - This sets the number of notifications a task has.  By default, `Task`s are lightweight and have no notifications.  Attempting interact with notifications when this is not set will cause a crash, and attempting to access notifications above the number that exist will also cause a crash.
+
+</ul><ul>
+
+`mailbox` - When set to true, the `Task` is given a mailbox that can be accessed with `Task.deliver()`, `Task.recv()`, and `Task.message_count()`.  When set to False (the default), the `Task` cannot receive messages (and attempting to send the `Task` messages will crash the OS), but it can still use `Task.send()` to send messages to other tasks.
+
 </ul>
 
 <ul>
@@ -236,6 +268,120 @@ Task functions must be wrapped in `Task` objects that hold some context data.  T
 <ul>
 
 This will initialize the task function, to obtain the generator and run any setup code (code before the first yield).  Note that this passes `self` into the task function, to make the following methods of `Task` available to the task.  This can be run explicitly.  If it is not, it will be run when the task is added to the scheduler using `add_task()`.  In most cases, it is not necessary to manually initialize tasks, but if there are strict ordering and timing constraints between several tasks, manual initialization can be used to guarantee that these constraints are met.  If a task is manually initialized, `add_task()` will not attempt to initialize it again.
+
+</ul>
+</ul>
+
+<ul>
+
+**```Task.notify_set_value(index=0, state=1, value=0)```**
+
+<ul>
+
+This sets a notification state and value.  By default, this sets notification 0 to state 1 and value 0.  The main use case for this is when a notification needs to provide some data to the task, for example an input sampled by an ADC or states of an array of buttons or digital pins.
+
+</ul><ul>
+
+`index` - The index of the notification to be set.  If the task only has one notification, this argument can be omitted (as the default index is 0).
+
+</ul><ul>
+
+`state` - The new state value of the notification.  A state of 0 means the notification is inactive.  A state of 1 means the notification is active and needs attention, which is why 1 is the default value.  Aside from default values, the state value actually has no special meaning to pyRTOS, so if needed, the state value can be treated as having whatever meaning is desired.  This is a signed byte type, and thus it can take a value anywhere in the range 127 to -128.
+
+</ul><ul>
+
+`value` - The value to set the notification to.  The meaning of the value is purely user defined.  It can be used as a counter, to keep track of how many times a given notification has been sent or as a data field to send integer data up to 32 bits.  This allows the sender to provide anything from temperature data to one pixel of 24 or 32 bit color data through a notification.  As with state, this is a signed type.
+
+</ul>
+</ul>
+
+<ul>
+
+**```Task.notify_inc_value(index=0, state=1, step=1)```**
+
+<ul>
+
+Similar the `Task.notify_set_value()`, this increments the value instead of setting it.  If the value of this notification is being used to keep track of how many notifications of this type have been received, use this to send the notification.  (See `Task.notify_set_value()` for more detailed information on the first two arguments.)
+
+</ul><ul>
+
+`index` - The index of the notification to be set.  If the task only has one notification, this argument can be omitted (as the default index is 0).
+
+</ul><ul>
+
+`state` - The new state value of the notification.
+
+</ul><ul>
+
+`step` - The increment step for the value.  This can be set to a negative value to decrement.  The default is to increment the value by 1.
+
+</ul>
+</ul>
+
+<ul>
+
+**```Task.notify_get_value(index=0)```**
+
+<ul>
+
+Returns the value of a notification.
+
+</ul><ul>
+
+`index` - The index of the notification to retrieve the value of.  If the task only has one notification, this argument can be omitted (as the default index is 0).
+
+</ul>
+</ul>
+
+<ul>
+
+**```Task.notify_set_state(index=0, state=1)```**
+
+<ul>
+
+In some cases it may be desirable to send a notification while retaining the current value, or it may be necessary to change the state without changing the value.  This is especially useful in cases where the state value is used by the task to keep track of things like accesses.  For example, a state of 2 might be used to indicate that a notification has not been read, and after reading the notification, the task might change the state to 1, to indicate that it has read the notification but is not ready for it to be overwritten with a new notification.
+
+</ul><ul>
+
+`index` - The index of the notification to be set.  If the task only has one notification, this argument can be omitted (as the default index is 0).
+
+</ul><ul>
+
+`state` - The new state value of the notification.
+
+</ul>
+</ul>
+
+<ul>
+
+**```Task.notify_inc_state(index=0, step=1)```**
+
+<ul>
+
+Instead of setting the state, it may be desirable to increment it.  This can be used make a task block until it has received a particular notification a specific number of times.  It is possible to create something like a lightweight semaphore using this mechanic.  Using a Service Routine, this mechanic can also be used to wake up a task when a button or other input has been activated a specific number of times.  It is even possible to build certain types of state machines around this mechanic.
+
+</ul><ul>
+
+`index` - The index of the notification to be set.  If the task only has one notification, this argument can be omitted (as the default index is 0).
+
+</ul><ul>
+
+`step` - The increment step for the value.  This can be set to a negative value to decrement.  The default is to increment the value by 1.
+
+</ul>
+</ul>
+
+<ul>
+
+**```Task.notify_get_state(index=0)```**
+
+<ul>
+
+In some cases it may be necessary to check the state of a notification.  For example, if a notification should only be sent if the notification is inactive, this can be used to check if the state is 0.  If a program is using a state of 2 to indicate an unread notification and a 1 to indicate a read one that should be preserved, the task can use this to check the state.
+
+</ul><ul>
+
+`index` - The index of the notification to be set.  If the task only has one notification, this argument can be omitted (as the default index is 0).
 
 </ul>
 </ul>
@@ -352,6 +498,14 @@ This delay is based on OS cycles rather than time.  This allows for delays that 
 <ul>
 
 This blocks until a message is added to the incoming message queue for this task.  `self` should be the `Task` object of the calling task.
+
+</ul>
+
+**```wait_for_notification(task, index=0, state=1)```**
+
+<ul>
+
+This blocks until the notification of number `index` for `task` is equal to `state`.  `task` does not necessarily have to be the caller.  This can be used to have the caller wait for another entity to send it a notification, or this can be used to have another entity wait for a notification on a particular `Task` to be set to a particular value (for example, wait for a notification to be inactive (set to 0), before sending a new notification to the same index).
 
 </ul>
 

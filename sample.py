@@ -76,8 +76,8 @@ def sample_task(self):
 		yield [pyRTOS.wait_for_message(self)]
 
 
-pyRTOS.add_task(pyRTOS.Task(sample_task, name="task1"))
-pyRTOS.add_task(pyRTOS.Task(sample_task, name="task2"))
+pyRTOS.add_task(pyRTOS.Task(sample_task, name="task1", mailbox=True))
+pyRTOS.add_task(pyRTOS.Task(sample_task, name="task2", mailbox=True))
 pyRTOS.add_service_routine(lambda: print("Service Routine Executing"))
 
 

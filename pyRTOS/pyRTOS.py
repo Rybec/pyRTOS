@@ -71,6 +71,17 @@ def wait_for_message(self):
 	while True:
 		yield self.message_count() > 0
 
+# Notification - Task is waiting for a notification
+def wait_for_notification(task, index=0, state=1):
+	task.notes[0][index] = 0
+	while task.notes[0][index] != state:
+		yield False
+
+	while True:
+		yield True
+
+
+
 # API I/O   - I/O done by the pyRTOS API has completed.
 #             This blocking should be automatic, but API
 #             functions may want to provide a timeout

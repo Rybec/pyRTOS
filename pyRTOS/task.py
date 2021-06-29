@@ -33,14 +33,21 @@ SUSPENDED = 3   # Task is waiting for some other task to unsuspend
 class Task(object):
 	_out_messages = []
 
-	def __init__(self, func, priority=255, name=None):
+	def __init__(self, func, priority=255, name=None, notifications=None, mailbox=False):
 		self.func = func
 		self.priority = priority
 		self.name = name
+
+		if notifications != None:
+			self.notes = (array.array('b', [0] * notifications),
+			              array.array('l', [0] * notifications))
+
+		if mailbox:
+			self._in_messages = []
+
 		self.state = READY
 		self.ready_conditions = []
 		self.thread = None  # This is for the generator object
-		self._in_messages = []
 
 	# If the thread function is well behaved, this will get the generator
 	# for it, then it will start it, it will run its initialization code,
@@ -62,8 +69,43 @@ class Task(object):
 
 		return msgs
 
+
+# Notification Functions #
+	def wait_for_notification(self, index=0, state=1):
+		self.notes[0][index] = 0
+		while self.notes[0][index] != state:
+			yield False
+
+		while True:
+			yield True
+
+
+	def notify_set_value(self, index=0, state=1, value=0):
+		self.notes[0][index] = state
+		self.notes[1][index] = value
+
+	def notify_inc_value(self, index=0, state=1, step=1):
+		self.notes[0][index] = state
+		self.notes[1][index] += step
+
+	def notify_get_value(self, index=0):
+		return self.notes[1][index]
+
+
+	def notify_set_state(self, index=0, state=1):
+		self.notes[0][index] = state
+
+	def notify_inc_state(self, index=0, step=1):
+		self.notes[0][index] += step
+
+	def notify_get_state(self, index=0):
+		return self.notes[0][index]
+##########################
+
+
+# Mailbox functions #
 	def send(self, msg):
-		self._out_messages.append(msg)
+		Task._out_messages.append(msg)
 
 	def recv(self):
 		msgs = self._in_messages
@@ -75,6 +117,8 @@ class Task(object):
 
 	def deliver(self, msg):
 		self._in_messages.append(msg)
+#####################
+
 
 	def suspend(self):
 		self.state = SUSPENDED
