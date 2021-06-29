@@ -253,11 +253,11 @@ Task functions must be wrapped in `Task` objects that hold some context data.  T
 
 </ul><ul>
 
-`notifications` - This sets the number of notifications a task has.  By default, `Task`s are lightweight and have no notifications.  Attempting interact with notifications when this is not set will cause a crash, and attempting to access notifications above the number that exist will also cause a crash.
+`notifications` - This sets the number of notifications a task has.  By default, tasks are lightweight and have no notifications.  Attempting to interact with notifications when this is not set will cause a crash, and attempting to access notifications above the number that exist will also cause a crash.
 
 </ul><ul>
 
-`mailbox` - When set to true, the `Task` is given a mailbox that can be accessed with `Task.deliver()`, `Task.recv()`, and `Task.message_count()`.  When set to False (the default), the `Task` cannot receive messages (and attempting to send the `Task` messages will crash the OS), but it can still use `Task.send()` to send messages to other tasks.
+`mailbox` - When set to true, the task is given a mailbox that can be accessed with `Task.deliver()`, `Task.recv()`, and `Task.message_count()`.  When set to False (the default), the task cannot receive messages (and attempting to send the task messages will crash the OS), but it can still use `Task.send()` to send messages to other tasks.
 
 </ul>
 
@@ -812,11 +812,7 @@ print_mutex.unlock()
 
 ### Mutual Exclusion
 
-We currently have a Mutex object (with priority inheritance), but this isn't really a complete set of mutual exclusion tools.  FreeRTOS has Binary Semaphores, Counting Semaphores, and Recursive Mutexes.  Because this uses voluntary preemption, these are not terribly high priority, as tasks can just _not yield_ during critical sections, rather than needing to use mutual exclusion.  There are still cases where mutual exclusion is necessary though.  This includes things like locking external hardware that has time consuming I/O, where we might want to yield for some time to allow the I/O to complete, without allowing other tasks to tamper with that hardware while we are waiting.  In addition, some processors have vector processing and/or floating point units that are slow enough to warrant yielding while waiting, without giving up exclusive access to those units.  The relevance of these is not clear in the context of Python, but we definitely want some kind of mutual exclusion.
-
-In FreeRTOS, Mutexes have a priority inheritance mechanic.  By default, this is also true in pyRTOS, because blocking conditions are checked in task priority order.  Binary semaphores are effectively mutexes without priority inheritance.  How would we handle request order based locks?  I suppose we could have a queue in the semaphore that keeps track of who asked first and prioritizes in that order.  This would be significantly more expensive than priority inheritance, but it shouldn't be too hard to do.
-
-Would spinlocks be relevant/useful in a single threaded, voluntary preemption system?
+We currently have a Mutex object (with priority inheritance) and a Binary Semaphore object (essentially a first-come-first-served Mutex), but this isn't really a complete set of mutual exclusion tools.  FreeRTOS has Counting Semaphores and Recursive Mutexes.  Because this uses voluntary preemption, these are not terribly high priority, as tasks can just _not yield_ during critical sections, rather than needing to use mutual exclusion.  There are still cases where mutual exclusion is necessary though.  This includes things like locking external hardware that has time consuming I/O, where we might want to yield for some time to allow the I/O to complete, without allowing other tasks to tamper with that hardware while we are waiting.  In addition, some processors have vector processing and/or floating point units that are slow enough to warrant yielding while waiting, without giving up exclusive access to those units.  The relevance of these is not clear in the context of Python, but we definitely want some kind of mutual exclusion.
 
 ### FreeRTOS
 
