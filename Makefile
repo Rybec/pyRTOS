@@ -1,4 +1,4 @@
-MPY_CROSS = ./mpy-cross.static-x64-windows-6.3.0.exe
+MPY_CROSS = ./mpy-cross.static-amd64-linux-6.3.0
 
 # Order matters here.  Dependencies must come
 # before files that depend on them.
