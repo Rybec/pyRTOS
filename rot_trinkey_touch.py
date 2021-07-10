@@ -145,6 +145,6 @@ def renderer(self):
 
 pyRTOS.add_task(pyRTOS.Task(touch_handler, priority=0, name="touch"))
 pyRTOS.add_task(pyRTOS.Task(color_update, priority=1, name="color"))
-pyRTOS.add_task(pyRTOS.Task(renderer, priority=2, name="renderer"))
+pyRTOS.add_task(pyRTOS.Task(renderer, priority=2, name="renderer", mailbox=True))
 
 pyRTOS.start()
