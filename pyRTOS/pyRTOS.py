@@ -2,7 +2,7 @@ import time
 
 import pyRTOS
 
-version = 0.1
+version = 1.0
 
 
 tasks = []
