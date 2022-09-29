@@ -808,6 +808,29 @@ for temp in temps:
 print_mutex.unlock()
 ```
 
+### Service Routine Example
+
+#### Scheduler Delay (Simple Service Routine)
+
+When using pyRTOS within an OS, instead of _as_ the OS of an embedded microcontroller, it will likely use significantly more CPU time than expected.  This is because it assumes it is the only thing running.  While there are several ways to solve this, the simplest is probably to just create a service routine that introduces a delay to the scheduler.  The delay probably does not need to be very long to reduce the CPU time consumed by the scheduler to almost nothing (but note that if your tasks do a lot between yields, _they_ may still use a lot of CPU time).
+
+Service routines are simple function that do not take any arguments or return anything.  If a service routine needs outside data or communication, it will need to be done through global variables.  (More complex service routines can be made with generators, if internal state needs to be preserved.)
+
+
+```
+scheduler_delay = 0.001 # Scheduler delay in seconds (0.001 is 1 millisecond; adjust as needed)
+
+# Service Routine function
+def delay_sr():
+	global scheduler_delay
+	time.sleep(scheduler_delay)  # Don't forget to import time
+
+
+pyRTOS.add_service_routine(delay_sr)  # Register service routine to run every scheduler loop
+
+```
+
+
 ## Future Additions
 
 ### Mutual Exclusion
