@@ -28,6 +28,7 @@ To the best of my knowledge, aside from voluntary preemption, the task schedulin
 [Message API](#message-api)
 
 [OS API](#os-api)
+- [Service Routines](#service-routine)
 
 [Templates & Examples](#templates--examples)
 - [Task Template](#task-template)
@@ -36,6 +37,7 @@ To the best of my knowledge, aside from voluntary preemption, the task schedulin
 - [Messages Passing Examples](#message-passing-examples)
 - [Message Queue Exmaples](#message-queue-examples)
 - [Mutex Examples](#mutex-examples)
+- [Service Routine Examples](#service-routine-examples)
 
 [Future Additions](#future-additions)
 
@@ -808,7 +810,7 @@ for temp in temps:
 print_mutex.unlock()
 ```
 
-### Service Routine Example
+### Service Routine Examples
 
 #### Scheduler Delay (Simple Service Routine)
 
