@@ -27,7 +27,7 @@ def add_service_routine(service_routine):
 
 
 def start(scheduler=None):
-	global tasks
+	global tasks, service_routines
 
 	if scheduler == None:
 		scheduler = pyRTOS.default_scheduler
