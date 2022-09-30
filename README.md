@@ -28,7 +28,7 @@ To the best of my knowledge, aside from voluntary preemption, the task schedulin
 [Message API](#message-api)
 
 [OS API](#os-api)
-- [Service Routines](#service-routine)
+- [Service Routines](#service-routines)
 
 [Templates & Examples](#templates--examples)
 - [Task Template](#task-template)
