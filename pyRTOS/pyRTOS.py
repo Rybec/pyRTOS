@@ -10,6 +10,8 @@ service_routines = []
 
 
 def add_task(task):
+	global tasks
+
 	if task.thread == None:
 		task.initialize()
 
@@ -19,6 +21,8 @@ def add_task(task):
 
 
 def add_service_routine(service_routine):
+	global service_routines
+
 	service_routines.append(service_routine)
 
 
