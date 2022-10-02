@@ -121,7 +121,7 @@ Note that `add_task()` will automatically initialize any task that has not previ
 
 <ul>
 
-This begins execution.  This function will only return when all tasks have terminated.  In most cases, tasks will not terminate and this will never return.
+This begins execution.  This function will only return when all tasks have terminated.  In most cases, tasks will not terminate and this will never return.  Note that this means no code after this will ever be run.
 
 </ul><ul>
 
@@ -629,7 +629,7 @@ For the most part, messing around inside the OS is not a great idea.  While part
 
 ### Service Routines
 
-Service routines are OS extensions that run every OS loop.  An OS loop occurs every time a task yields.  Service routines have no priority mechanic, and they run in the order they are registered.  Registered service routines are intended to be permanent.  While it is possible to remove them, this is part of the OS implementation that may change without warning, and there is no formal mechanic for removing a service routine.
+Service routines are OS extensions that run every OS loop.  An OS loop occurs every time a task yields.  Service routines have no priority mechanic, and they run in the order they are registered.  Registered service routines are intended to be permanent.  While it is possible to remove them, this is part of the OS implementation that may change without warning, and there is no formal mechanic for removing a service routine.  Likewise, while service routines can technically be added from within tasks, it is generally better practice to add them in the main initialization code before calling `pyRTOS.start()`†.  Starting service routines outside of the main initialization code may make performance problems related to the service routine extremely difficult to debug.
 
 Service routines are simple functions, which take no arguments and return nothing.  Because they run every OS loop, service routines should be small and fast, much like ISRs in RTOSs that use real-time preemption.  Normally, service routines should also be stateless.  Service routines that need to communicate with tasks can be created with references to global `MessageQueue` or `Task` objects.  As OS extensions, it is appropriate for service routines to call `Task.deliver()` to send tasks messages, however note that creating message objects is expensive.  Sending lighter messages in `MessageQueue`s is cheaper, and future features may provide even better options.
 
@@ -638,6 +638,7 @@ Service routines that absolutely need internal state _can be_ created by wrappin
 Use cases for service routines start with the kind of things ISRs are normally used for.  In CircuitPython (as of 6.3.0), there are no iterrupts.  If you need to regularly check if a pin normally used as an interrupt source, a service routine is a good place to do that.  Just like with an ISR, you should not handle the program business in the service routine.  Instead, the service routine should notify a task that will handle the business associated with the iterrupt.  Service routines can also be used to handle things that multiple tasks care about, to avoid the need for semaphores.  For example, if multiple tasks need network communication (generally avoid this is possible), a service routine can handle routing traffic between the network and the tasks.  Note though, that putting a large network stack in a service routine is a terrible idea that will starve your tasks of CPU time.  If you need something bigger than a very slim traffic routing routine, it should be put into a task rather than a service routine.
 
 \* No, we will not wrap the service routine OS code in a try/except statement.  This would increase the size of the OS and make it run more slowly.  Instead, write good code and follow the instructions in this document, and no errors will ever get to the OS.
+† Attempting to start a service routine in the main initialization _after_ `pyRTOS.start()` will fail, as this function does not return in normal usage and thus no code after it will ever run. 
 
 **```add_service_routine(service_routine)```**
 
