@@ -35,6 +35,7 @@ To the best of my knowledge, aside from voluntary preemption, the task schedulin
 - [Message Handling Example Template](#message-handling-example-template)
 - [Timeout & Delay Examples](#timeout--delay-examples)
 - [Messages Passing Examples](#message-passing-examples)
+- [Notification Examples](#notification-examples)
 - [Message Queue Exmaples](#message-queue-examples)
 - [Mutex Examples](#mutex-examples)
 - [Service Routine Examples](#service-routine-examples)
