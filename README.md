@@ -812,7 +812,6 @@ Set notification 0 to a state of 1 and increment its value as a counter
 
 ```
 task.notify_inc_value(index=0, step=1)
-
 ```
 
 #### Set Notification to Value
