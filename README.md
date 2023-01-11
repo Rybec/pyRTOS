@@ -781,6 +781,47 @@ yield [temp_queue.recv(temp_buffer)]
 temp = temp_buffer.pop()
 ```
 
+### Notification Examples
+
+#### Example Task with Notification
+
+Task that runs one step each time it receives a notification at index 0
+
+```
+# This task uses one notification
+def task_w_notification(self):
+	# No setup
+	yield
+
+	# Main Task Loop
+	while True:
+		self.wait_for_notification(index=0, state=1)
+
+		# Task code here
+		# self.notify_get_value(0) returns the value of notification 0
+
+
+# Create task instance
+task = Task(task_w_notification, notifications=1)
+```
+
+#### Set Notification with Increment
+
+Set notification 0 to a state of 1 and increment its value as a counter
+
+```
+task.notify_inc_value(index=0, step=1)
+
+```
+
+#### Set Notification to Value
+
+Set notification 0 to a state of 1 and value of 27
+
+```
+task.notify_set_value(index=0, value=27)
+```
+
 ### Mutex Examples
 
 #### Create Mutex
