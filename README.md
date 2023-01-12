@@ -39,6 +39,7 @@ To the best of my knowledge, aside from voluntary preemption, the task schedulin
 - [Message Queue Exmaples](#message-queue-examples)
 - [Mutex Examples](#mutex-examples)
 - [Service Routine Examples](#service-routine-examples)
+- [Communication Setup Examples](#communication-setup-examples)
 
 [Future Additions](#future-additions)
 
@@ -872,8 +873,90 @@ def delay_sr():
 
 
 pyRTOS.add_service_routine(delay_sr)  # Register service routine to run every scheduler loop
+```
+
+### Communication Setup Examples
+
+Before tasks can communicate with each other, they have to know about each other.  Giving tasks references to other tasks can be done in a variety of ways.
+
+#### Global Tasks
+
+Tasks are typically going to be global variables just to start with.  This makes them automatically available to anything that can access global scope.  For this to work though, things need to be done in the correct order.  A task function cannot know about a task that does not exist yet, and a task cannot be created until the associated task function is defined.  If things are done in the right order though, this can still work.
 
 ```
+# We have to create the globals before we can define the task functions
+task0 = None
+task1 = None
+
+def task0_fun(self):
+	global task1  # Give this task access to the task1 global variable
+	# Initialization code here
+	yield
+
+	while True:
+		# Task code here
+		yield
+
+def task1_fun(self):
+	global task0  # Give this task access to the task0 global variable
+	# Initialization code here
+	yield
+	
+	while True:
+		# Task code here
+		yield
+		
+task0 = pyRTOS.Task(task0_fun)
+task1 = pyRTOS.Task(task1_fun)
+
+# Start tasks and then scheduler
+```
+
+#### Deliver Tasks Using Mailboxes
+
+Tasks can be delivered to other tasks using their mailboxes.  Obviously this only works for tasks initialized with mailboxes.  Order of events is less important here, but the tasks must explicitly read their mailboxes to get the task references.  (Note that this is the accepted method for giving _any_ arguments to tasks, not just references to other tasks.)
+
+```
+def task_fun(self):
+	target_task = self.recv()[0]
+	yield
+	
+	while True:
+		# Code here, including communication with target_task
+		yield
+
+task = pyRTOS.Task(task_fun, priority=3)
+
+
+task.deliver(some_other_task)
+```
+
+#### Module Level Globals
+
+If the tasks exist within a separate module, the global nature of modules can be leveraged to provide what are essentially global references to those tasks.  This can be done, simply by making the tasks global variables at the module level, and then referencing them as variables contained in the module.  This eliminates the need for using the `global` directive, however that may make the code less readable, becaues the `global` directive at the begining of a task function is a clear indicator that the task is using that global.
+
+Excerpt from `mod_tasks.py`
+```
+task = pyRTOS.Task(task_fun)
+```
+
+Excert from external file
+```
+import mod_tasks
+
+def task_fun(self):
+	# Initialization code
+	yield
+	
+	while True:
+		# Task code
+		
+		# Using reference to task, without needing to declare it global
+		mod_tasks.task.[etc...]
+		
+		yield
+```
+
 
 
 ## Future Additions
