@@ -116,7 +116,13 @@ class Task(object):
 		return len(self._in_messages)
 
 	def deliver(self, msg):
-		self._in_messages.append(msg)
+		if hasattr(self, "_in_messages"):
+			self._in_messages.append(msg)
+		else:
+			name = self.name
+			if self.name is None:
+				name = str(self)
+			raise Exception("Task, " + name + ", does not have a mailbox")
 #####################
 
 
